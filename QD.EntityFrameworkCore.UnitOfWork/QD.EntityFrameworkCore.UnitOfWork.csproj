@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\QD.EntityFrameworkCore.UnitOfWork.Abstractions\QD.EntityFrameworkCore.UnitOfWork.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>
