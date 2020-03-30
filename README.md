@@ -7,8 +7,8 @@
 
 [AzureBadgeMaster]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_apis/build/status/CI-Release?branchName=master
 [AzurePipelineMaster]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_build/latest?definitionId=9&branchName=master
-[AzureBadgeDevelop]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_apis/build/status/CI-Release?branchName=master
-[AzurePipelineDevelop]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_build/latest?definitionId=9&branchName=master
+[AzureBadgeDevelop]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_apis/build/status/CI-Development?branchName=develop
+[AzurePipelineDevelop]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_build/latest?definitionId=10&branchName=develop
 
 | Branch | Build | Deployment |
 |:----:|:-------------:|:----:|
