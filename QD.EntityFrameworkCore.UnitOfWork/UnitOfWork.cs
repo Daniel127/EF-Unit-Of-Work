@@ -157,7 +157,6 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		{
 			try
 			{
-				using IDisposable? loggerScope = Logger?.BeginScope("");
 				using TransactionScope transaction = new TransactionScope();
 				int count = 0;
 				foreach (IUnitOfWork unitOfWork in unitOfWorks)
@@ -194,13 +193,10 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		{
 			lock (SyncRoot)
 			{
-				if (!Disposed)
+				if (!Disposed && disposing)
 				{
-					if (disposing)
-					{
-						Repositories.Clear();
-						DbContext.Dispose();
-					}
+					Repositories.Clear();
+					DbContext.Dispose();
 				}
 				Disposed = true;
 			}
