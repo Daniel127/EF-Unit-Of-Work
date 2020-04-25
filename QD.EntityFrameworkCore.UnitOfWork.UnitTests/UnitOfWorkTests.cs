@@ -32,6 +32,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 			});
 
 			services.AddSingleton<IRepository<Product>, Repository<Product>>(); //Custom Repository
+			services.AddSingleton<IReadOnlyRepository<Product>, ReadOnlyRepository<Product>>(); //Custom ReadOnlyRepository
 			services.AddSingleton<IUnitOfWork<TestDbContext>, UnitOfWork<TestDbContext>>();
 			services.AddSingleton<IUnitOfWork<TestDbContext2>, UnitOfWork<TestDbContext2>>();
 
@@ -61,9 +62,37 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 		}
 
 		[Fact]
+		public void GetReadOnlyRepository()
+		{
+			var userRepository = _unitOfWorkUsers.GetReadOnlyRepository<User>();
+			userRepository.Should().NotBeNull();
+			userRepository.Any().Should().BeFalse();
+		}
+
+		[Fact]
+		public void GetReadOnlyRepositoryCreated()
+		{
+			var userRepository = _unitOfWorkUsers.GetReadOnlyRepository<User>();
+			userRepository.Should().NotBeNull();
+			userRepository.Any().Should().BeFalse();
+
+			var userRepository2 = _unitOfWorkUsers.GetReadOnlyRepository<User>();
+			userRepository2.Should().NotBeNull().And.Be(userRepository);
+			userRepository2.Any().Should().BeFalse();
+		}
+
+		[Fact]
 		public void GetCustomRepository()
 		{
 			var productRepository = _unitOfWorkProducts.GetRepository<Product>();
+			productRepository.Should().NotBeNull();
+			productRepository.Any().Should().BeFalse();
+		}
+
+		[Fact]
+		public void GetCustomReadOnlyRepository()
+		{
+			var productRepository = _unitOfWorkProducts.GetReadOnlyRepository<Product>();
 			productRepository.Should().NotBeNull();
 			productRepository.Any().Should().BeFalse();
 		}
