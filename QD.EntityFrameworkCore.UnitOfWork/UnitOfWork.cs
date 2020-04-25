@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 using QD.EntityFrameworkCore.UnitOfWork.Abstractions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -23,6 +24,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		private bool Disposed { get; set; }
 		private object SyncRoot { get; }
 		private IDictionary<Type, object> Repositories { get; }
+		private IDictionary<Type, object> ReadOnlyRepositories { get; }
 		private ILogger<IUnitOfWork<TContext>>? Logger { get; }
 
 		/// <summary>
@@ -34,7 +36,8 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 			DbContext = context ?? throw new ArgumentNullException(nameof(context));
 			Disposed = false;
 			SyncRoot = new object();
-			Repositories = new Dictionary<Type, object>();
+			Repositories = new ConcurrentDictionary<Type, object>();
+			ReadOnlyRepositories = new ConcurrentDictionary<Type, object>();
 		}
 
 		/// <summary>
@@ -50,25 +53,43 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		/// <inheritdoc />
 		public IRepository<TEntity> GetRepository<TEntity>() where TEntity : class
 		{
-			lock (SyncRoot)
+			Type entityType = typeof(TEntity);
+			if (Repositories.ContainsKey(entityType)) return (IRepository<TEntity>)Repositories[entityType];
+
+			try
 			{
-				Type entityType = typeof(TEntity);
-				if (Repositories.ContainsKey(entityType)) return (IRepository<TEntity>)Repositories[entityType];
-
-				try
-				{
-					IRepository<TEntity> customRepo = DbContext.GetService<IRepository<TEntity>>();
-					Repositories[entityType] = customRepo;
-					return customRepo;
-				}
-				catch
-				{
-					Logger?.LogDebug("Can't get Repository from service provider");
-				}
-
-				Repositories[entityType] = new Repository<TEntity>(DbContext);
-				return (IRepository<TEntity>)Repositories[entityType];
+				IRepository<TEntity> customRepo = DbContext.GetService<IRepository<TEntity>>();
+				Repositories[entityType] = customRepo;
+				return customRepo;
 			}
+			catch
+			{
+				Logger?.LogDebug("Can't get Repository from service provider");
+			}
+
+			Repositories[entityType] = new Repository<TEntity>(DbContext);
+			return (IRepository<TEntity>)Repositories[entityType];
+		}
+
+		/// <inheritdoc />
+		public IReadOnlyRepository<TEntity> GetReadOnlyRepository<TEntity>() where TEntity : class
+		{
+			Type entityType = typeof(TEntity);
+			if (ReadOnlyRepositories.ContainsKey(entityType)) return (IReadOnlyRepository<TEntity>)ReadOnlyRepositories[entityType];
+
+			try
+			{
+				IReadOnlyRepository<TEntity> customRepo = DbContext.GetService<IReadOnlyRepository<TEntity>>();
+				ReadOnlyRepositories[entityType] = customRepo;
+				return customRepo;
+			}
+			catch
+			{
+				Logger?.LogDebug("Can't get Repository from service provider");
+			}
+
+			ReadOnlyRepositories[entityType] = new ReadOnlyRepository<TEntity>(DbContext);
+			return (IReadOnlyRepository<TEntity>)ReadOnlyRepositories[entityType];
 		}
 
 		#region Execute SQL
