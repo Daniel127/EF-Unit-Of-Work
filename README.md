@@ -17,4 +17,78 @@
 
 
 # What is it?
-Repository and Unit of Work pattern implementation for Entity Framework Core.
+Repository and Unit of Work pattern implementation for Entity Framework Core 3.
+
+# How to use?
+
+## Installation
+Install the Nuget packages. Use Abstractions for logic layers and the other with insfrastructure layer or monolithic project.
+
+```powershell
+dotnet add package QD.EntityFrameworkCore.UnitOfWork
+dotnet add package QD.EntityFrameworkCore.UnitOfWork.Abstractions
+```
+
+## Register Services
+
+```csharp
+public class AppDbContext : DbContext, IDbContext
+{
+    public DbSet<Product> Products { get; set; }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
+    ...
+    ...
+}
+```
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<AppDbContext>(builder =>
+    {
+        ...
+    });
+
+#region Register UnitOfWorks
+    // Register a IUnitOfWork<AppDbContext>
+    _services.AddUnitOfWork<AppDbContext>();
+    // Register a IUnitOfWork<AppDbContext> and IUnitOfWork
+    _services.AddUnitOfWork<AppDbContext>(onlyGeneric: false);
+#endregion
+
+    // Optional, register custom repositories
+    _services.AddRepository<Product, ProductRepository>();
+    _services.AddReadOnlyRepository<Product, ProductReadOnlyRepository>();
+}
+```
+
+## Use the services
+
+```csharp
+public class FancyService : IFancyService
+{
+    private readonly IUnitOfWork<AppDbContext> _unitOfWork;
+
+    public FancyService(IUnitOfWork<AppDbContext> unitOfWork)
+    {
+        _unitOfWork = unitOfWork;
+    }
+
+    public void DoFancyThing()
+    {
+        var productsRepository = _unitOfWork.GetRepository<Product>();
+
+        var products = productsRepository.GetAll();
+
+        ...
+        // Use inserts, updates, deletes.
+        ...
+
+        _unitOfWork.SaveChanges();
+    }
+}
+```
