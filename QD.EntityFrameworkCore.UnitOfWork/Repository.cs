@@ -20,25 +20,25 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 
 		#region Create
 		/// <inheritdoc />
-		public void Insert(TEntity entity)
+		public virtual void Insert(TEntity entity)
 		{
 			DbSet.Add(entity);
 		}
 
 		/// <inheritdoc />
-		public void Insert(IEnumerable<TEntity> entities)
+		public virtual void Insert(IEnumerable<TEntity> entities)
 		{
 			DbSet.AddRange(entities);
 		}
 
 		/// <inheritdoc />
-		public async ValueTask<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
+		public virtual async ValueTask<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
 		{
 			return (await DbSet.AddAsync(entity, cancellationToken)).Entity;
 		}
 
 		/// <inheritdoc />
-		public Task InsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+		public virtual Task InsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
 		{
 			return DbSet.AddRangeAsync(entities, cancellationToken);
 		}
@@ -46,19 +46,19 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 
 		#region Update
 		/// <inheritdoc />
-		public void Update([NotNull] TEntity entity)
+		public virtual void Update([NotNull] TEntity entity)
 		{
 			DbSet.Update(entity);
 		}
 
 		/// <inheritdoc />
-		public void Update([NotNull] params TEntity[] entities)
+		public virtual void Update([NotNull] params TEntity[] entities)
 		{
 			DbSet.UpdateRange(entities);
 		}
 
 		/// <inheritdoc />
-		public void Update([NotNull] IEnumerable<TEntity> entities)
+		public virtual void Update([NotNull] IEnumerable<TEntity> entities)
 		{
 			DbSet.UpdateRange(entities);
 		}
@@ -66,7 +66,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 
 		#region Delete
 		/// <inheritdoc />
-		public void Delete([MaybeNull] params object[] keyValues)
+		public virtual void Delete([MaybeNull] params object[] keyValues)
 		{
 			TEntity entity = DbSet.Find(keyValues);
 			if (entity != null)
@@ -76,13 +76,13 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public void Delete([NotNull] TEntity entity)
+		public virtual void Delete([NotNull] TEntity entity)
 		{
 			DbSet.Remove(entity);
 		}
 
 		/// <inheritdoc />
-		public void Delete([NotNull] IEnumerable<TEntity> entities)
+		public virtual void Delete([NotNull] IEnumerable<TEntity> entities)
 		{
 			DbSet.RemoveRange(entities);
 		}

@@ -191,8 +191,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 			}
 			catch (Exception e)
 			{
-				const string name = nameof(SaveChangesAsync);
-				Logger?.LogError(e, "Error in {name}", name);
+				Logger?.LogError(e, "Error in {name}", nameof(SaveChangesAsync));
 				throw;
 			}
 		}

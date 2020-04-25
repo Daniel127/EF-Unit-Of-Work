@@ -33,7 +33,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 
 		#region Read
 		/// <inheritdoc />
-		public IQueryable<TEntity> GetAll(Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TEntity, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true)
+		public virtual IQueryable<TEntity> GetAll(Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TEntity, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true)
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -44,7 +44,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public TEntity GetFirstOrDefault(Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TEntity, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true)
+		public virtual TEntity GetFirstOrDefault(Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TEntity, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true)
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -55,7 +55,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public TResult GetFirstOrDefault<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TResult, IOrderedQueryable<TResult>>>? orderBy = null, bool disableTracking = true) where TResult : class
+		public virtual TResult GetFirstOrDefault<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TResult, IOrderedQueryable<TResult>>>? orderBy = null, bool disableTracking = true) where TResult : class
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -67,7 +67,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public Task<TEntity> GetFirstOrDefaultAsync(Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TEntity, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true)
+		public virtual Task<TEntity> GetFirstOrDefaultAsync(Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TEntity, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true)
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -78,7 +78,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public Task<TResult> GetFirstOrDefaultAsync<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TResult, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true) where TResult : class
+		public virtual Task<TResult> GetFirstOrDefaultAsync<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Expression<Func<TResult, IOrderedQueryable<TEntity>>>? orderBy = null, bool disableTracking = true) where TResult : class
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -90,31 +90,31 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public IQueryable<TEntity> FromSqlInterpolated(FormattableString sql)
+		public virtual IQueryable<TEntity> FromSqlInterpolated(FormattableString sql)
 		{
 			return DbSet.FromSqlInterpolated(sql);
 		}
 
 		/// <inheritdoc />
-		public IQueryable<TEntity> FromSqlRaw(string sql, params object[] parameters)
+		public virtual IQueryable<TEntity> FromSqlRaw(string sql, params object[] parameters)
 		{
 			return DbSet.FromSqlRaw(sql, parameters);
 		}
 
 		/// <inheritdoc />
-		public TEntity Find(params object[] keyValues)
+		public virtual TEntity Find(params object[] keyValues)
 		{
 			return DbSet.Find(keyValues);
 		}
 
 		/// <inheritdoc />
-		public ValueTask<TEntity> FindAsync(params object[] keyValues)
+		public virtual ValueTask<TEntity> FindAsync(params object[] keyValues)
 		{
 			return DbSet.FindAsync(keyValues);
 		}
 
 		/// <inheritdoc />
-		public ValueTask<TEntity> FindAsync(object[] keyValues, CancellationToken cancellationToken)
+		public virtual ValueTask<TEntity> FindAsync(object[] keyValues, CancellationToken cancellationToken)
 		{
 			return DbSet.FindAsync(keyValues, cancellationToken);
 		}
@@ -122,19 +122,19 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 
 		#region Other
 		/// <inheritdoc />
-		public int Count(Expression<Func<TEntity, bool>>? predicate = null)
+		public virtual int Count(Expression<Func<TEntity, bool>>? predicate = null)
 		{
 			return predicate != null ? DbSet.Count(predicate) : DbSet.Count();
 		}
 
 		/// <inheritdoc />
-		public Task<int> CountAsync(Expression<Func<TEntity, bool>>? predicate = null, CancellationToken cancellationToken = default)
+		public virtual Task<int> CountAsync(Expression<Func<TEntity, bool>>? predicate = null, CancellationToken cancellationToken = default)
 		{
 			return predicate != null ? DbSet.CountAsync(predicate, cancellationToken) : DbSet.CountAsync(cancellationToken);
 		}
 
 		/// <inheritdoc />
-		public bool Any(Expression<Func<TEntity, bool>>? predicate = null)
+		public virtual bool Any(Expression<Func<TEntity, bool>>? predicate = null)
 		{
 			return predicate != null ? DbSet.Any(predicate) : DbSet.Any();
 		}

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using QD.EntityFrameworkCore.UnitOfWork.Abstractions;
 using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Contexts;
 using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Models;
+using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Repositories;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -31,8 +32,8 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 				builder.UseInMemoryDatabase("TestUnitOfWork2");
 			});
 
-			services.AddSingleton<IRepository<Product>, Repository<Product>>(); //Custom Repository
-			services.AddSingleton<IReadOnlyRepository<Product>, ReadOnlyRepository<Product>>(); //Custom ReadOnlyRepository
+			services.AddSingleton<IRepository<Product>, ProductRepository>(); //Custom Repository
+			services.AddSingleton<IReadOnlyRepository<Product>, ProductRepository>(); //Custom ReadOnlyRepository
 			services.AddSingleton<IUnitOfWork<TestDbContext>, UnitOfWork<TestDbContext>>();
 			services.AddSingleton<IUnitOfWork<TestDbContext2>, UnitOfWork<TestDbContext2>>();
 
