@@ -10,9 +10,12 @@
 [AzureBadgeDevelop]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_apis/build/status/CI-Development?branchName=develop
 [AzurePipelineDevelop]: https://dev.azure.com/Daniel127/Entity%20Framework%20-%20Unit%20Of%20Work/_build/latest?definitionId=10&branchName=develop
 
+[NugetUrl]: https://www.nuget.org/packages/QD.EntityFrameworkCore.UnitOfWork
+[NugetBadge]: https://feeds.dev.azure.com/Daniel127/9d57e78d-f822-418e-ad91-46858d16c35e/_apis/public/Packaging/Feeds/7646e5f2-1d15-485d-98ff-e07b2ae10dd2/Packages/c2532a3a-a889-4da9-b244-567a1ec13fd8/Badge
+
 | Branch | Build | Deployment |
 |:----:|:-------------:|:----:|
-| master | [![Build][GitHubBadgeMaster]][GitHubActionsLink]  [![Build Status][AzureBadgeMaster]][AzurePipelineMaster] | N/A |
+| master | [![Build][GitHubBadgeMaster]][GitHubActionsLink]  [![Build Status][AzureBadgeMaster]][AzurePipelineMaster] | [![Nuget package][NugetBadge]][NugetUrl] |
 | develop | [![Build][GitHubBadgeDevelop]][GitHubActionsLink]  [![Build Status][AzureBadgeDevelop]][AzurePipelineDevelop] | N/A |
 
 
