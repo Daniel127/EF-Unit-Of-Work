@@ -216,6 +216,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 				if (!Disposed && disposing)
 				{
 					Repositories.Clear();
+					ReadOnlyRepositories.Clear();
 					DbContext.Dispose();
 				}
 				Disposed = true;

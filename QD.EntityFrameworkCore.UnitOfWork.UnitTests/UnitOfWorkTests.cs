@@ -42,6 +42,27 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 			_unitOfWorkUsers = serviceProvider.GetService<IUnitOfWork<TestDbContext2>>();
 		}
 
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_unitOfWorkProducts.DbContext.Products.RemoveRange(_unitOfWorkProducts.DbContext.Products);
+				_unitOfWorkProducts.DbContext.SaveChanges();
+				_unitOfWorkProducts.Dispose();
+
+				_unitOfWorkUsers.DbContext.Users.RemoveRange(_unitOfWorkUsers.DbContext.Users);
+				_unitOfWorkUsers.DbContext.Products.RemoveRange(_unitOfWorkUsers.DbContext.Products);
+				_unitOfWorkUsers.DbContext.SaveChanges();
+				_unitOfWorkUsers.Dispose();
+			}
+		}
+
 		[Fact]
 		public void GetRepository()
 		{
@@ -134,19 +155,6 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 			await _unitOfWorkProducts.SaveChangesAsync(_unitOfWorkUsers);
 			productRepository.Any().Should().BeTrue();
 			productRepository2.Any().Should().BeTrue();
-		}
-
-		/// <inheritdoc />
-		public void Dispose()
-		{
-			_unitOfWorkProducts.DbContext.Products.RemoveRange(_unitOfWorkProducts.DbContext.Products);
-			_unitOfWorkProducts.DbContext.SaveChanges();
-			_unitOfWorkProducts.Dispose();
-
-			_unitOfWorkUsers.DbContext.Users.RemoveRange(_unitOfWorkUsers.DbContext.Users);
-			_unitOfWorkUsers.DbContext.Products.RemoveRange(_unitOfWorkUsers.DbContext.Products);
-			_unitOfWorkUsers.DbContext.SaveChanges();
-			_unitOfWorkUsers.Dispose();
 		}
 	}
 }

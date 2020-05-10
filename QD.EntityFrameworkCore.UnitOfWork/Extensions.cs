@@ -5,6 +5,9 @@ using System;
 
 namespace QD.EntityFrameworkCore.UnitOfWork
 {
+	/// <summary>
+	/// Extension methods for add services.
+	/// </summary>
 	public static class Extensions
 	{
 		/// <summary>

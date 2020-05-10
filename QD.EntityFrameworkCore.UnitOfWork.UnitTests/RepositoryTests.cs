@@ -1,13 +1,15 @@
-using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using QD.EntityFrameworkCore.UnitOfWork.Abstractions;
-using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Contexts;
-using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using QD.EntityFrameworkCore.UnitOfWork.Abstractions;
+using QD.EntityFrameworkCore.UnitOfWork.Abstractions.Collections;
+using QD.EntityFrameworkCore.UnitOfWork.Collections;
+using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Contexts;
+using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Models;
 using Xunit;
 
 namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
@@ -27,9 +29,18 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 
 		public void Dispose()
 		{
-			_testDbContext.RemoveRange(_testDbContext.Products.ToList());
-			_testDbContext.SaveChanges();
-			_testDbContext.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_testDbContext.RemoveRange(_testDbContext.Products.ToList());
+				_testDbContext.SaveChanges();
+				_testDbContext.Dispose();
+			}
 		}
 
 		[Fact]
@@ -849,6 +860,366 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 					result.Should().BeFalse();
 				}
 			}
+		}
+
+		[Fact]
+		public void GetPagedList()
+		{
+			List<Product> products = new List<Product>();
+			for (int i = 0; i < 100; i++)
+			{
+				products.Add(new Product { Name = $"Product {i}", Price = i } );
+			}
+
+			_productsRepository.Insert(products);
+			_testDbContext.SaveChanges();
+
+			IPagedCollection<Product> page1 = _productsRepository.GetPagedList(10, orderBy: query => query.OrderBy(product => product.Price));
+			page1.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedList<Product>>();
+
+			page1.PageSize.Should().Be(10);
+			page1.PageNumber.Should().Be(0);
+			page1.TotalPages.Should().Be(10);
+			page1.HasNextPage.Should().BeTrue();
+			page1.HasPreviousPage.Should().BeFalse();
+			page1.Items.Should().NotBeNull().And.HaveCount(10);
+			for (int i = 0; i < 10; i++)
+			{
+				page1[i].Price.Should().Be(i, "{0}", page1.Items.Aggregate("", (concat, next) => $"{concat}, {next.Price}"));
+			}
+
+			IPagedCollection<Product> page2 = _productsRepository.GetPagedList(20, 4, orderBy: query => query.OrderBy(product => product.Price));
+			page2.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedList<Product>>();
+
+			page2.PageSize.Should().Be(20);
+			page2.PageNumber.Should().Be(4);
+			page2.TotalPages.Should().Be(5);
+			page2.HasNextPage.Should().BeFalse();
+			page2.HasPreviousPage.Should().BeTrue();
+			page2.Items.Should().NotBeNull().And.HaveCount(20);
+			for (int i = 0; i < 20; i++)
+			{
+				page2[i].Price.Should().Be(20 * 4 + i);
+			}
+
+			IPagedCollection<Product> page3 = _productsRepository.GetPagedList(20, 0, product => product.Price > 500);
+			page3.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedList<Product>>();
+
+			page3.PageSize.Should().Be(20);
+			page3.PageNumber.Should().Be(0);
+			page3.TotalPages.Should().Be(1);
+			page3.HasNextPage.Should().BeFalse();
+			page3.HasPreviousPage.Should().BeFalse();
+			page3.Items.Should().NotBeNull().And.HaveCount(0);
+
+			Action pageNotFound = () => _productsRepository.GetPagedArray(20, 1, product => product.Price > 500);
+			pageNotFound.Should().Throw<PageNotFoundException>();
+		}
+
+		[Fact]
+		public async Task GetPagedListAsync()
+		{
+			List<Product> products = new List<Product>();
+			for (int i = 0; i < 100; i++)
+			{
+				products.Add(new Product { Name = $"Product {i}", Price = i });
+			}
+
+			await _productsRepository.InsertAsync(products);
+			await _testDbContext.SaveChangesAsync();
+
+			IPagedCollection<Product> page1 = await _productsRepository.GetPagedListAsync(10, orderBy: query => query.OrderBy(product => product.Price));
+			page1.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedList<Product>>();
+
+			page1.PageSize.Should().Be(10);
+			page1.PageNumber.Should().Be(0);
+			page1.TotalPages.Should().Be(10);
+			page1.HasNextPage.Should().BeTrue();
+			page1.HasPreviousPage.Should().BeFalse();
+			page1.Items.Should().NotBeNull().And.HaveCount(10);
+			for (int i = 0; i < 10; i++)
+			{
+				page1[i].Price.Should().Be(i, "{0}", page1.Items.Aggregate("", (concat, next) => $"{concat}, {next.Price}"));
+			}
+
+			IPagedCollection<Product> page2 = await _productsRepository.GetPagedListAsync(20, 4, orderBy: query => query.OrderBy(product => product.Price));
+			page2.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedList<Product>>();
+
+			page2.PageSize.Should().Be(20);
+			page2.PageNumber.Should().Be(4);
+			page2.TotalPages.Should().Be(5);
+			page2.HasNextPage.Should().BeFalse();
+			page2.HasPreviousPage.Should().BeTrue();
+			page2.Items.Should().NotBeNull().And.HaveCount(20);
+			for (int i = 0; i < 20; i++)
+			{
+				page2[i].Price.Should().Be(20 * 4 + i);
+			}
+
+			IPagedCollection<Product> page3 = await _productsRepository.GetPagedListAsync(20, 0, product => product.Price > 500);
+			page3.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedList<Product>>();
+
+			page3.PageSize.Should().Be(20);
+			page3.PageNumber.Should().Be(0);
+			page3.TotalPages.Should().Be(1);
+			page3.HasNextPage.Should().BeFalse();
+			page3.HasPreviousPage.Should().BeFalse();
+			page3.Items.Should().NotBeNull().And.HaveCount(0);
+
+			Func<Task> pageNotFound = async () => await _productsRepository.GetPagedArrayAsync(20, 1, product => product.Price > 500);
+			pageNotFound.Should().Throw<PageNotFoundException>();
+		}
+
+		[Fact]
+		public void GetPagedArray()
+		{
+			List<Product> products = new List<Product>();
+			for (int i = 0; i < 100; i++)
+			{
+				products.Add(new Product { Name = $"Product {i}", Price = i });
+			}
+
+			_productsRepository.Insert(products);
+			_testDbContext.SaveChanges();
+
+			IPagedCollection<Product> page1 = _productsRepository.GetPagedArray(10, orderBy: query => query.OrderBy(product => product.Price));
+			page1.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedArray<Product>>();
+
+			page1.PageSize.Should().Be(10);
+			page1.PageNumber.Should().Be(0);
+			page1.TotalPages.Should().Be(10);
+			page1.HasNextPage.Should().BeTrue();
+			page1.HasPreviousPage.Should().BeFalse();
+			page1.Items.Should().NotBeNull().And.HaveCount(10);
+			for (int i = 0; i < 10; i++)
+			{
+				page1[i].Price.Should().Be(i, "{0}", page1.Items.Aggregate("", (concat, next) => $"{concat}, {next.Price}"));
+			}
+
+			IPagedCollection<Product> page2 = _productsRepository.GetPagedArray(20, 4, orderBy: query => query.OrderBy(product => product.Price));
+			page2.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedArray<Product>>();
+
+			page2.PageSize.Should().Be(20);
+			page2.PageNumber.Should().Be(4);
+			page2.TotalPages.Should().Be(5);
+			page2.HasNextPage.Should().BeFalse();
+			page2.HasPreviousPage.Should().BeTrue();
+			page2.Items.Should().NotBeNull().And.HaveCount(20);
+			for (int i = 0; i < 20; i++)
+			{
+				page2[i].Price.Should().Be(20 * 4 + i);
+			}
+
+			IPagedCollection<Product> page3 = _productsRepository.GetPagedArray(20, 0, product => product.Price > 500);
+			page3.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedArray<Product>>();
+
+			page3.PageSize.Should().Be(20);
+			page3.PageNumber.Should().Be(0);
+			page3.TotalPages.Should().Be(1);
+			page3.HasNextPage.Should().BeFalse();
+			page3.HasPreviousPage.Should().BeFalse();
+			page3.Items.Should().NotBeNull().And.HaveCount(0);
+
+			Action pageNotFound = () => _productsRepository.GetPagedArray(20, 1, product => product.Price > 500);
+			pageNotFound.Should().Throw<PageNotFoundException>();
+		}
+
+		[Fact]
+		public async Task GetPagedArrayAsync()
+		{
+			List<Product> products = new List<Product>();
+			for (int i = 0; i < 100; i++)
+			{
+				products.Add(new Product { Name = $"Product {i}", Price = i });
+			}
+
+			await _productsRepository.InsertAsync(products);
+			await _testDbContext.SaveChangesAsync();
+
+			IPagedCollection<Product> page1 = await _productsRepository.GetPagedArrayAsync(10, orderBy: query => query.OrderBy(product => product.Price));
+			page1.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedArray<Product>>();
+
+			page1.PageSize.Should().Be(10);
+			page1.PageNumber.Should().Be(0);
+			page1.TotalPages.Should().Be(10);
+			page1.HasNextPage.Should().BeTrue();
+			page1.HasPreviousPage.Should().BeFalse();
+			page1.Items.Should().NotBeNull().And.HaveCount(10);
+			for (int i = 0; i < 10; i++)
+			{
+				page1[i].Price.Should().Be(i, "{0}", page1.Items.Aggregate("", (concat, next) => $"{concat}, {next.Price}"));
+			}
+
+			IPagedCollection<Product> page2 = await _productsRepository.GetPagedArrayAsync(20, 4, orderBy: query => query.OrderBy(product => product.Price));
+			page2.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedArray<Product>>();
+
+			page2.PageSize.Should().Be(20);
+			page2.PageNumber.Should().Be(4);
+			page2.TotalPages.Should().Be(5);
+			page2.HasNextPage.Should().BeFalse();
+			page2.HasPreviousPage.Should().BeTrue();
+			page2.Items.Should().NotBeNull().And.HaveCount(20);
+			for (int i = 0; i < 20; i++)
+			{
+				page2[i].Price.Should().Be(20 * 4 + i);
+			}
+
+			IPagedCollection<Product> page3 = await _productsRepository.GetPagedArrayAsync(20, 0, product => product.Price > 500);
+			page3.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedArray<Product>>();
+
+			page3.PageSize.Should().Be(20);
+			page3.PageNumber.Should().Be(0);
+			page3.TotalPages.Should().Be(1);
+			page3.HasNextPage.Should().BeFalse();
+			page3.HasPreviousPage.Should().BeFalse();
+			page3.Items.Should().NotBeNull().And.HaveCount(0);
+
+			Func<Task> pageNotFound = async () => await _productsRepository.GetPagedArrayAsync(20, 1, product => product.Price > 500);
+			pageNotFound.Should().Throw<PageNotFoundException>();
+		}
+
+		[Fact]
+		public void GetPagedDictionary()
+		{
+			List<Product> products = new List<Product>();
+			for (int i = 0; i < 100; i++)
+			{
+				products.Add(new Product { Name = $"Product {i}", Price = i });
+			}
+
+			_productsRepository.Insert(products);
+			_testDbContext.SaveChanges();
+
+			IPagedCollection<KeyValuePair<Guid, Product>> page1 = _productsRepository.GetPagedDictionary(product => product.Id, 10, orderBy: query => query.OrderBy(product => product.Price));
+			page1.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedDictionary<Guid, Product>>();
+
+			page1.PageSize.Should().Be(10);
+			page1.PageNumber.Should().Be(0);
+			page1.TotalPages.Should().Be(10);
+			page1.HasNextPage.Should().BeTrue();
+			page1.HasPreviousPage.Should().BeFalse();
+			page1.Items.Should().NotBeNull().And.HaveCount(10);
+			for (int i = 0; i < 10; i++)
+			{
+				page1[i].Value.Price.Should().Be(i, "{0}", page1.Items.Aggregate("", (concat, next) => $"{concat}, {next.Value.Price}"));
+			}
+
+			IPagedCollection<KeyValuePair<Guid, Product>> page2 = _productsRepository.GetPagedDictionary(product => product.Id, 20, 4, orderBy: query => query.OrderBy(product => product.Price));
+			page2.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedDictionary<Guid, Product>>();
+
+			page2.PageSize.Should().Be(20);
+			page2.PageNumber.Should().Be(4);
+			page2.TotalPages.Should().Be(5);
+			page2.HasNextPage.Should().BeFalse();
+			page2.HasPreviousPage.Should().BeTrue();
+			page2.Items.Should().NotBeNull().And.HaveCount(20);
+			for (int i = 0; i < 20; i++)
+			{
+				page2[i].Value.Price.Should().Be(20 * 4 + i);
+			}
+
+			IPagedCollection<KeyValuePair<Guid, Product>> page3 = _productsRepository.GetPagedDictionary(product => product.Id, 20, 0, product => product.Price > 500);
+			page3.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedDictionary<Guid, Product>>();
+
+			page3.PageSize.Should().Be(20);
+			page3.PageNumber.Should().Be(0);
+			page3.TotalPages.Should().Be(1);
+			page3.HasNextPage.Should().BeFalse();
+			page3.HasPreviousPage.Should().BeFalse();
+			page3.Items.Should().NotBeNull().And.HaveCount(0);
+
+			Action pageNotFound = () => _productsRepository.GetPagedDictionary(product => product.Id, 20, 1, product => product.Price > 500);
+			pageNotFound.Should().Throw<PageNotFoundException>();
+		}
+
+		[Fact]
+		public async Task GetPagedDictionaryAsync()
+		{
+			List<Product> products = new List<Product>();
+			for (int i = 0; i < 100; i++)
+			{
+				products.Add(new Product { Name = $"Product {i}", Price = i });
+			}
+
+			await _productsRepository.InsertAsync(products);
+			await _testDbContext.SaveChangesAsync();
+
+			IPagedCollection<KeyValuePair<Guid, Product>> page1 = await _productsRepository.GetPagedDictionaryAsync(product => product.Id, 10, orderBy: query => query.OrderBy(product => product.Price));
+			page1.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedDictionary<Guid, Product>>();
+
+			page1.PageSize.Should().Be(10);
+			page1.PageNumber.Should().Be(0);
+			page1.TotalPages.Should().Be(10);
+			page1.HasNextPage.Should().BeTrue();
+			page1.HasPreviousPage.Should().BeFalse();
+			page1.Items.Should().NotBeNull().And.HaveCount(10);
+			for (int i = 0; i < 10; i++)
+			{
+				page1[i].Value.Price.Should().Be(i, "{0}", page1.Items.Aggregate("", (concat, next) => $"{concat}, {next.Value.Price}"));
+			}
+
+			IPagedCollection<KeyValuePair<Guid, Product>> page2 = await _productsRepository.GetPagedDictionaryAsync(product => product.Id, 20, 4, orderBy: query => query.OrderBy(product => product.Price));
+			page2.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedDictionary<Guid, Product>>();
+
+			page2.PageSize.Should().Be(20);
+			page2.PageNumber.Should().Be(4);
+			page2.TotalPages.Should().Be(5);
+			page2.HasNextPage.Should().BeFalse();
+			page2.HasPreviousPage.Should().BeTrue();
+			page2.Items.Should().NotBeNull().And.HaveCount(20);
+			for (int i = 0; i < 20; i++)
+			{
+				page2[i].Value.Price.Should().Be(20 * 4 + i);
+			}
+
+			IPagedCollection<KeyValuePair<Guid, Product>> page3 = await _productsRepository.GetPagedDictionaryAsync(product => product.Id, 20, 0, product => product.Price > 500);
+			page3.Should()
+				.NotBeNull()
+				.And.BeOfType<PagedDictionary<Guid, Product>>();
+
+			page3.PageSize.Should().Be(20);
+			page3.PageNumber.Should().Be(0);
+			page3.TotalPages.Should().Be(1);
+			page3.HasNextPage.Should().BeFalse();
+			page3.HasPreviousPage.Should().BeFalse();
+			page3.Items.Should().NotBeNull().And.HaveCount(0);
+
+			Func<Task> pageNotFound = async () => await _productsRepository.GetPagedDictionaryAsync(product => product.Id, 20, 1, product => product.Price > 500);
+			pageNotFound.Should().Throw<PageNotFoundException>();
 		}
 	}
 }
