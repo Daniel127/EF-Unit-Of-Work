@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 {
 	/// <summary>
-	/// Defines the interfaces for generic repository.
+	/// Repository of <see cref="TEntity"/>.
 	/// </summary>
 	/// <typeparam name="TEntity">The type of the entity.</typeparam>
 	public interface IRepository<TEntity> : IReadOnlyRepository<TEntity> where TEntity : class
