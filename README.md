@@ -95,3 +95,55 @@ public class FancyService : IFancyService
     }
 }
 ```
+
+## Paged Collections (v2.0)
+
+```csharp
+public void FancyFunction()
+{
+    // These are some examples
+
+    // Array
+    IPagedCollection<Product> page1 = _productsRepository.GetPagedArray(20, 0, product => product.Price > 500);
+    IPagedCollection<Product> page2 = await _productsRepository.GetPagedArrayAsync(
+        pageSize: 10,
+        orderBy: query => query.OrderBy(product => product.Price).ThenBy(product => product.Name)
+    );
+    // Indexers
+    var a = page1[1].Price;
+    var b = ((PagedArray<Product>)page1)[2].Price;
+
+    ...
+
+    // List
+    IPagedCollection<Product> page1 = _productsRepository.GetPagedList(20, 0, product => product.Price > 500);
+    IPagedCollection<Product> page2 = await _productsRepository.GetPagedListAsync(
+        pageSize: 10,
+        orderBy: query => query.OrderBy(product => product.Price).ThenBy(product => product.Name)
+    );
+    // Indexers
+    var a = page1[1].Price;
+    var b = ((PagedList<Product>)page1)[2].Price;
+
+    ...
+
+    // Dictionary
+    IPagedCollection<KeyValuePair<Guid, Product>> page1 = _productsRepository.GetPagedDictionary(product => product.Id, 20, 0, product => product.Price > 500);
+    IPagedCollection<KeyValuePair<Guid, Product>> page2 = await _productsRepository.GetPagedDictionaryAsync(
+        keySelector: product => product.Id,
+        pageSize: 10,
+        orderBy: query => query.OrderBy(product => product.Price).ThenBy(product => product.Name)
+    );
+    // Indexers
+    var a = page1[1].Value.Price;
+    var b = ((PagedDictionary<Guid, Product>)page1)[Guid.Parse("5926d548-c0b3-4c40-b37f-e89be7741024")].Price;
+}
+```
+
+The before methods are same that
+
+```csharp
+    GetAll(predicate, orderBy).ToPagedArray(pageSize, pageNumber);
+    GetAll(predicate, orderBy).ToPagedListAsync(pageSize, pageNumber);
+    GetAll(predicate, orderBy).ToPagedDictionary(keySelector, pageSize, pageNumber);
+```

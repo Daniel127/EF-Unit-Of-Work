@@ -14,6 +14,14 @@
     <Description>Unit of Work pattern implementation</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CodeAnalysisRuleSet>QD.EntityFrameworkCore.UnitOfWork-1.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <CodeAnalysisRuleSet>QD.EntityFrameworkCore.UnitOfWork-1.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="..\LICENSE.md">
       <Pack>True</Pack>
