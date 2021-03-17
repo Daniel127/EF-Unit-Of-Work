@@ -1,7 +1,6 @@
 ﻿using QD.EntityFrameworkCore.UnitOfWork.Abstractions.Collections;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -33,7 +32,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// <param name="orderBy">A function to order elements.</param>
 		/// <param name="disableTracking"><c>true</c> to disable changing tracking; otherwise, <c>false</c>. Default to <c>true</c>.</param>
 		/// <remarks>This method defaults to a read-only, no-tracking query.</remarks>
-		TEntity GetFirstOrDefault(Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, bool disableTracking = true);
+		TEntity? GetFirstOrDefault(Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, bool disableTracking = true);
 
 		/// <summary>
 		/// Gets the first or default entity based on a predicate, order by delegate and include delegate.
@@ -43,7 +42,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// <param name="orderBy">A function to order elements.</param>
 		/// <param name="disableTracking"><c>true</c> to disable changing tracking; otherwise, <c>false</c>. Default to <c>true</c>.</param>
 		/// <remarks>This method defaults to a read-only, no-tracking query.</remarks>
-		TResult GetFirstOrDefault<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TResult>, IOrderedQueryable<TResult>>? orderBy = null, bool disableTracking = true) where TResult : class;
+		TResult? GetFirstOrDefault<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TResult>, IOrderedQueryable<TResult>>? orderBy = null, bool disableTracking = true) where TResult : class;
 
 		/// <summary>
 		/// Gets the first or default entity based on a predicate, order by delegate and include delegate.
@@ -84,14 +83,14 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// </summary>
 		/// <param name="keyValues">The values of the primary key for the entity to be found.</param>
 		/// <returns>The found entity or null.</returns>
-		TEntity Find([MaybeNull] params object[] keyValues);
+		TEntity Find(params object[] keyValues);
 
 		/// <summary>
 		/// Finds an entity with the given primary key values. If found, is attached to the context and returned. If no entity is found, then null is returned.
 		/// </summary>
 		/// <param name="keyValues">The values of the primary key for the entity to be found.</param>
 		/// <returns>A <see cref="Task{TEntity}"/> that represents the asynchronous find operation. The task result contains the found entity or null.</returns>
-		ValueTask<TEntity> FindAsync([MaybeNull] params object[] keyValues);
+		ValueTask<TEntity> FindAsync(params object[] keyValues);
 
 		/// <summary>
 		/// Finds an entity with the given primary key values. If found, is attached to the context and returned. If no entity is found, then null is returned.
@@ -99,7 +98,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// <param name="keyValues">The values of the primary key for the entity to be found.</param>
 		/// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
 		/// <returns>A <see cref="Task{TEntity}"/> that represents the asynchronous find operation. The task result contains the found entity or null.</returns>
-		ValueTask<TEntity> FindAsync([MaybeNull] object[] keyValues, CancellationToken cancellationToken);
+		ValueTask<TEntity> FindAsync(object[] keyValues, CancellationToken cancellationToken);
 		#endregion
 
 		#region Other

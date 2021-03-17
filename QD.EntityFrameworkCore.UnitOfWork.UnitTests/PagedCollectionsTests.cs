@@ -6,11 +6,8 @@ using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Contexts;
 using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Models;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -109,17 +106,10 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 			getPagedDictionary.Should().ThrowExactly<TException>();
 			getPagedDictionaryAsync.Should().ThrowExactly<TException>();
 
-			if (exception is PageNotFoundException pageNotFoundException)
-			{
-				int totalPages = (int)Math.Ceiling((double)Math.DivRem(ProductsNumber, pageSize, out _));
-				pageNotFoundException.TotalPages.Should().Be(totalPages);
-				pageNotFoundException.PageNumber.Should().Be(pageNumber);
-
-				var clone = SerializationClone<PageNotFoundException>(pageNotFoundException);
-
-				clone.TotalPages.Should().Be(pageNotFoundException.TotalPages);
-				clone.PageNumber.Should().Be(pageNotFoundException.PageNumber);
-			}
+			if (exception is not PageNotFoundException pageNotFoundException) return;
+			int totalPages = (int)Math.Ceiling((double)Math.DivRem(ProductsNumber, pageSize, out _));
+			pageNotFoundException.TotalPages.Should().Be(totalPages);
+			pageNotFoundException.PageNumber.Should().Be(pageNumber);
 		}
 
 		#region Paged Array
@@ -385,29 +375,5 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 			};
 			pages.Should().NotBeNull();
 		}
-
-		#region Utils
-
-		private static Stream Serialize(object source)
-		{
-			IFormatter formatter = new BinaryFormatter();
-			Stream stream = new MemoryStream();
-			formatter.Serialize(stream, source);
-			return stream;
-		}
-
-		private static T Deserialize<T>(Stream stream)
-		{
-			IFormatter formatter = new BinaryFormatter();
-			stream.Position = 0;
-			return (T)formatter.Deserialize(stream);
-		}
-
-		private static T SerializationClone<T>(object source)
-		{
-			return Deserialize<T>(Serialize(source));
-		}
-
-		#endregion
 	}
 }
