@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,13 +15,13 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// Inserts a new entity synchronously.
 		/// </summary>
 		/// <param name="entity">The entity to insert.</param>
-		void Insert([NotNull] TEntity entity);
+		void Insert(TEntity entity);
 
 		/// <summary>
 		/// Inserts a range of entities synchronously.
 		/// </summary>
 		/// <param name="entities">The entities to insert.</param>
-		void Insert([NotNull] IEnumerable<TEntity> entities);
+		void Insert(IEnumerable<TEntity> entities);
 
 		/// <summary>
 		/// Inserts a new entity asynchronously.
@@ -30,7 +29,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// <param name="entity">The entity to insert.</param>
 		/// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
 		/// <returns>A <see cref="Task"/> that represents the asynchronous insert operation.</returns>
-		ValueTask<TEntity> InsertAsync([NotNull] TEntity entity, CancellationToken cancellationToken = default);
+		ValueTask<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		/// Inserts a range of entities asynchronously.
@@ -38,7 +37,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// <param name="entities">The entities to insert.</param>
 		/// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
 		/// <returns>A <see cref="Task"/> that represents the asynchronous insert operation.</returns>
-		Task InsertAsync([NotNull] IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+		Task InsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
 		#endregion
 
 		#region Update
@@ -46,19 +45,19 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// Updates the specified entity.
 		/// </summary>
 		/// <param name="entity">The entity.</param>
-		void Update([NotNull] TEntity entity);
+		void Update(TEntity entity);
 
 		/// <summary>
 		/// Updates the specified entities.
 		/// </summary>
 		/// <param name="entities">The entities.</param>
-		void Update([NotNull] params TEntity[] entities);
+		void Update(params TEntity[] entities);
 
 		/// <summary>
 		/// Updates the specified entities.
 		/// </summary>
 		/// <param name="entities">The entities.</param>
-		void Update([NotNull] IEnumerable<TEntity> entities);
+		void Update(IEnumerable<TEntity> entities);
 		#endregion
 
 		#region Delete
@@ -66,19 +65,19 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions
 		/// Deletes the entity by the specified primary key.
 		/// </summary>
 		/// <param name="keyValues">The primary key value.</param>
-		void Delete([MaybeNull] params object[] keyValues);
+		void Delete(params object[] keyValues);
 
 		/// <summary>
 		/// Deletes the specified entity.
 		/// </summary>
 		/// <param name="entity">The entity to delete.</param>
-		void Delete([NotNull] TEntity entity);
+		void Delete(TEntity entity);
 
 		/// <summary>
 		/// Deletes the specified entities.
 		/// </summary>
 		/// <param name="entities">The entities.</param>
-		void Delete([NotNull] IEnumerable<TEntity> entities);
+		void Delete(IEnumerable<TEntity> entities);
 		#endregion
 	}
 
