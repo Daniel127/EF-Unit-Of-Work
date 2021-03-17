@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using System.Security.Permissions;
 
 namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions.Collections
 {
@@ -37,7 +36,6 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions.Collections
 		}
 
 		/// <inheritdoc />
-		[SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
 		public override void GetObjectData(SerializationInfo info, StreamingContext context)
 		{
 			base.GetObjectData(info, context);

@@ -48,7 +48,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public virtual TEntity GetFirstOrDefault(Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, bool disableTracking = true)
+		public virtual TEntity? GetFirstOrDefault(Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, bool disableTracking = true)
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -59,7 +59,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public virtual TResult GetFirstOrDefault<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TResult>, IOrderedQueryable<TResult>>? orderBy = null, bool disableTracking = true) where TResult : class
+		public virtual TResult? GetFirstOrDefault<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TResult>, IOrderedQueryable<TResult>>? orderBy = null, bool disableTracking = true) where TResult : class
 		{
 			IQueryable<TEntity> query = DbSet;
 			if (disableTracking)
@@ -112,7 +112,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
 		}
 
 		/// <inheritdoc />
-		public virtual ValueTask<TEntity> FindAsync(params object[] keyValues)
+		public virtual ValueTask<TEntity> FindAsync([NotNull] params object[] keyValues)
 		{
 			return DbSet.FindAsync(keyValues);
 		}
