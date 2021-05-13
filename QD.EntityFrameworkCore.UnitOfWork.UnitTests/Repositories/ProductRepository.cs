@@ -6,17 +6,17 @@ using System.Linq.Expressions;
 
 namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests.Repositories
 {
-	public class ProductRepository : Repository<Product>
-	{
-		/// <inheritdoc />
-		public ProductRepository(DbContext dbContext) : base(dbContext)
-		{
-		}
+    public class ProductRepository : Repository<Product>
+    {
+        /// <inheritdoc />
+        public ProductRepository(DbContext dbContext) : base(dbContext)
+        {
+        }
 
-		/// <inheritdoc />
-		public override int Count(Expression<Func<Product, bool>>? predicate = null)
-		{
-			return 127;
-		}
-	}
+        /// <inheritdoc />
+        public override int Count(Expression<Func<Product, bool>>? predicate = null)
+        {
+            return 127;
+        }
+    }
 }
