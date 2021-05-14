@@ -37,7 +37,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
         public UnitOfWork(TContext context, IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            DbContext = context ?? throw new ArgumentNullException(nameof(context));
+            DbContext = context;
             Disposed = false;
             SyncRoot = new object();
             Repositories = new ConcurrentDictionary<Type, object>();

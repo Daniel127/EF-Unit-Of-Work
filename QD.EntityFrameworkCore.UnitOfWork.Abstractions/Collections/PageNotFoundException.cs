@@ -29,6 +29,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.Abstractions.Collections
             TotalPages = totalPages;
         }
 
+        // ReSharper disable once UnusedMember.Local
         private PageNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             PageNumber = info.GetInt32(nameof(PageNumber));

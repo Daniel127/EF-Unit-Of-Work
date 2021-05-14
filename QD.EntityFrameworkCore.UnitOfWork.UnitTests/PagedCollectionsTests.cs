@@ -6,8 +6,10 @@ using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Contexts;
 using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -110,6 +112,41 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
             int totalPages = (int)Math.Ceiling((double)Math.DivRem(ProductsNumber, pageSize, out _));
             pageNotFoundException.TotalPages.Should().Be(totalPages);
             pageNotFoundException.PageNumber.Should().Be(pageNumber);
+        }
+
+        [Fact]
+        public void SerializePageNotFoundException()
+        {
+            Action toPaged = () => _products.ToPagedList(100, 3);
+            var exception = toPaged.Should().ThrowExactly<PageNotFoundException>().Which;
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
+#pragma warning disable 618
+            MemoryStream stream = SerializeToStream(exception);
+            var exceptionDeserialized = DeserializeFromStream(stream) as PageNotFoundException;
+            exceptionDeserialized.Should().NotBeNull();
+            if (exceptionDeserialized != null)
+            {
+                exceptionDeserialized.PageNumber.Should().Be(exception.PageNumber);
+                exceptionDeserialized.TotalPages.Should().Be(exception.TotalPages);
+            }
+
+            static MemoryStream SerializeToStream(object o)
+            {
+                MemoryStream stream = new MemoryStream();
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(stream, o);
+                return stream;
+            }
+
+            static object DeserializeFromStream(MemoryStream stream)
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                stream.Seek(0, SeekOrigin.Begin);
+                object o = formatter.Deserialize(stream);
+                return o;
+            }
+#pragma warning restore 618
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
         }
 
         #region Paged Array
@@ -360,20 +397,5 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
         }
 
         #endregion
-
-        [Fact]
-        public void Experiment()
-        {
-            var pages = new[] {
-                _products.ToPagedArray(50),
-                _products.ToPagedArray(50, 1),
-                _products.ToPagedArray(50, 2),
-                _products.ToPagedArray(50, 3),
-                _products.Where(product => product.Price > MaxPrice).ToPagedArray(50),
-                _products.ToPagedArray(23),
-                _products.ToPagedArray(23, 8),
-            };
-            pages.Should().NotBeNull();
-        }
     }
 }
