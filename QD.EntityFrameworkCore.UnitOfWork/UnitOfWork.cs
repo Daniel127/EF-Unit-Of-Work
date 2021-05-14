@@ -18,6 +18,8 @@ namespace QD.EntityFrameworkCore.UnitOfWork
     /// <typeparam name="TContext"></typeparam>
     public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbContext, IDbContext
     {
+        private readonly IServiceProvider _serviceProvider;
+
         /// <inheritdoc />
         public TContext DbContext { get; }
 
@@ -31,8 +33,10 @@ namespace QD.EntityFrameworkCore.UnitOfWork
         /// Initializes a new instance of the <see cref="UnitOfWork{TContext}"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public UnitOfWork(TContext context)
+        /// <param name="serviceProvider">The application service provider</param>
+        public UnitOfWork(TContext context, IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             DbContext = context ?? throw new ArgumentNullException(nameof(context));
             Disposed = false;
             SyncRoot = new object();
@@ -44,8 +48,9 @@ namespace QD.EntityFrameworkCore.UnitOfWork
         /// Initializes a new instance of the <see cref="UnitOfWork{TContext}"/> class with Logger Support.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="serviceProvider">The application service provider</param>
         /// <param name="logger">The logger.</param>
-        public UnitOfWork(TContext context, ILogger<IUnitOfWork<TContext>> logger) : this(context)
+        public UnitOfWork(TContext context, IServiceProvider serviceProvider, ILogger<IUnitOfWork<TContext>> logger) : this(context, serviceProvider)
         {
             Logger = logger;
         }
@@ -63,13 +68,13 @@ namespace QD.EntityFrameworkCore.UnitOfWork
             try
             {
                 Logger?.LogDebug($"Get Repository for entity {typeof(TEntity).Name} from services");
-                IRepository<TEntity> customRepo = DbContext.GetService<IRepository<TEntity>>();
-                Repositories[entityType] = customRepo;
+                IRepository<TEntity> customRepo = (IRepository<TEntity>) _serviceProvider.GetService(typeof(IRepository<TEntity>));
+                Repositories[entityType] = customRepo ?? throw new Exception("Service null");
                 return customRepo;
             }
-            catch
+            catch(Exception e)
             {
-                Logger?.LogDebug("Can't get Repository from service provider");
+                Logger?.LogDebug("Can't get Repository from service provider: {0}", e.Message);
             }
             Logger?.LogDebug($"Creating new Repository for entity {typeof(TEntity).Name}");
             Repositories[entityType] = new Repository<TEntity>(DbContext);
@@ -202,7 +207,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork
             }
             catch (Exception e)
             {
-                Logger?.LogError(e, "Error in {0}", $"{nameof(SaveChangesAsync)}(params {nameof(unitOfWorks)})");
+                Logger?.LogError(e, "Error in {0}", $"{nameof(SaveChangesAsync)}({nameof(unitOfWorks)})");
                 throw;
             }
         }

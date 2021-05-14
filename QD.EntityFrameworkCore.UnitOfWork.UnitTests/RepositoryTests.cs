@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using QD.EntityFrameworkCore.UnitOfWork.Abstractions;
 using QD.EntityFrameworkCore.UnitOfWork.Abstractions.Collections;
@@ -7,6 +8,7 @@ using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Contexts;
 using QD.EntityFrameworkCore.UnitOfWork.UnitTests.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,14 +19,24 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
     public class RepositoryTests : IDisposable
     {
         private readonly TestDbContext _testDbContext;
+        private readonly DbConnection _sqLiteConnection;
         private readonly IRepository<Product> _productsRepository;
 
         public RepositoryTests()
         {
-            DbContextOptionsBuilder<TestDbContext> options = new DbContextOptionsBuilder<TestDbContext>();
-            options.UseInMemoryDatabase("TestRepository");
-            _testDbContext = new TestDbContext(options.Options);
+            _sqLiteConnection = CreateSqLiteInMemoryDatabase();
+            DbContextOptionsBuilder<TestDbContext> optionsSqLite = new DbContextOptionsBuilder<TestDbContext>();
+            optionsSqLite.UseSqlite(_sqLiteConnection);
+            _testDbContext = new TestDbContext(optionsSqLite.Options);
             _productsRepository = new Repository<Product>(_testDbContext);
+            _testDbContext.Database.EnsureCreated();
+        }
+
+        private static DbConnection CreateSqLiteInMemoryDatabase()
+        {
+            var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();
+            return connection;
         }
 
         public void Dispose()
@@ -39,6 +51,7 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
             _testDbContext.RemoveRange(_testDbContext.Products.ToList());
             _testDbContext.SaveChanges();
             _testDbContext.Dispose();
+            _sqLiteConnection.Dispose();
         }
 
         [Fact]
@@ -1330,6 +1343,67 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 
             Func<Task> pageNotFound = async () => await _productsRepository.GetPagedDictionaryAsync(product => product.Id, 20, 1, product => product.Price > 500);
             pageNotFound.Should().Throw<PageNotFoundException>();
+        }
+
+        [Fact]
+        public void GetFromSqlRaw()
+        {
+            Product product = new Product
+            {
+                Name = "TestProduct"
+            };
+            Product product2 = new Product
+            {
+                Name = "TestProduct2"
+            };
+
+            const string sql = "SELECT * FROM Products";
+            const string sqlWhere = "SELECT * FROM Products WHERE \"Id\" = {0}";
+            IQueryable<Product> products = _productsRepository.FromSqlRaw(sql);
+            products.Should().BeEmpty();
+
+            _productsRepository.Insert(product);
+            _productsRepository.Insert(product2);
+            _testDbContext.SaveChanges();
+
+            var query = _productsRepository.FromSqlRaw(sqlWhere, product.Id);
+            query.Should().NotBeNull().And.ContainSingle();
+            query.First().Should().NotBeNull().And.Be(product);
+
+            products = _productsRepository.FromSqlRaw(sql);
+            products.Should().NotBeNullOrEmpty().And.HaveCount(2)
+                .And.Contain(p => p.Id == product.Id)
+                .And.Contain(p => p.Id == product2.Id);
+        }
+
+        [Fact]
+        public void GetFromSqlInterpolated()
+        {
+            Product product = new Product
+            {
+                Name = "TestProduct"
+            };
+            Product product2 = new Product
+            {
+                Name = "TestProduct2"
+            };
+
+            FormattableString sql = $"SELECT * FROM Products";
+            IQueryable<Product> products = _productsRepository.FromSqlInterpolated(sql);
+            products.Should().BeEmpty();
+
+            _productsRepository.Insert(product);
+            _productsRepository.Insert(product2);
+            _testDbContext.SaveChanges();
+
+            var queryProduct = _productsRepository.FromSqlInterpolated($"SELECT * FROM Products WHERE Id = {product.Id}");
+            queryProduct.Should().NotBeNull().And.ContainSingle();
+            queryProduct.First().Should().Be(product);
+
+            products = _productsRepository.FromSqlInterpolated(sql);
+            products.Should().NotBeNullOrEmpty().And.HaveCount(2)
+                .And.Contain(p => p.Id == product.Id)
+                .And.Contain(p => p.Id == product2.Id);
         }
     }
 }

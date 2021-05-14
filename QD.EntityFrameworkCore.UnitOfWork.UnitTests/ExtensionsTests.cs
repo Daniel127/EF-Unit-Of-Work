@@ -95,8 +95,8 @@ namespace QD.EntityFrameworkCore.UnitOfWork.UnitTests
 
             int count = registerGeneric ? 2 : 0;
             servicesUnitOfWork.Should().HaveCount(count);
-            servicesTestDb.Should().HaveCount(1).And.OnlyHaveUniqueItems();
-            servicesTestDb2.Should().HaveCount(1).And.OnlyHaveUniqueItems();
+            servicesTestDb.Should().ContainSingle().And.OnlyHaveUniqueItems();
+            servicesTestDb2.Should().ContainSingle().And.OnlyHaveUniqueItems();
 
             IUnitOfWork unitOfWork = serviceProvider.GetService<IUnitOfWork>();
             if (!registerGeneric)
